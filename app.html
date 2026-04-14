@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Dashboard | SplitCircle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="protected-page">
+  <div class="site-shell">
+    <header class="site-header">
+      <a href="index.html" class="brand">
+        <span class="brand-mark">SC</span>
+        <div>
+          <strong>SplitCircle</strong>
+          <p>Smarter group expense sharing</p>
+        </div>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="login.html">Log In</a>
+        <a href="signup.html">Sign Up</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact Us</a>
+        <a href="customization.html">Customization</a>
+        <a href="app.html" class="nav-cta active-link">Get Started</a>
+        <a href="index.html" class="nav-logout">Log Out</a>
+      </nav>
+    </header>
+
+    <main class="page-stack">
+      <div class="page-shell">
+        <header class="hero">
+          <div>
+            <span class="hero-badge">Protected workspace for real shared spending</span>
+            <p class="eyebrow">Expense Dashboard</p>
+            <h2 class="app-title" id="groupTitle">Your group expense workspace</h2>
+            <p class="hero-copy">
+              Manage members, track categorized expenses, record repayments, and export your group data when you need it.
+            </p>
+          </div>
+          <div class="hero-stats hero-stats-enhanced">
+            <article>
+              <span id="memberCount">0</span>
+              <p>Members</p>
+            </article>
+            <article>
+              <span id="expenseCount">0</span>
+              <p>Expenses</p>
+            </article>
+            <article>
+              <span id="paymentCount">0</span>
+              <p>Payments</p>
+            </article>
+            <article class="hero-callout">
+              <strong>Animated insights</strong>
+              <p>See category patterns and payment pressure at a glance.</p>
+            </article>
+          </div>
+
+          <div class="app-corner-animation" aria-hidden="true">
+            <div class="hero-animation-stage app-corner-stage">
+              <div class="money-orbit money-orbit-a"></div>
+              <div class="money-orbit money-orbit-b"></div>
+              <div class="coin-float coin-one">USD</div>
+              <div class="coin-float coin-two">INR</div>
+              <div class="coin-float coin-three">EUR</div>
+            </div>
+          </div>
+        </header>
+
+        <section class="summary-strip" id="summaryCards"></section>
+
+        <div class="dashboard">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Workspace</p>
+                <h2>Group settings</h2>
+              </div>
+            </div>
+            <form id="settingsForm" class="stack">
+              <label>
+                <span>Group name</span>
+                <input id="groupName" name="groupName" type="text" maxlength="50" placeholder="Enter group name">
+              </label>
+              <div class="form-grid">
+                <label>
+                  <span>Currency</span>
+                  <select id="currency" name="currency">
+                    <option value="INR">Indian Rupee (INR)</option>
+                    <option value="USD">US Dollar (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="GBP">British Pound (GBP)</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Settlement note</span>
+                  <input id="defaultNote" name="defaultNote" type="text" maxlength="60" placeholder="Add settlement note">
+                </label>
+              </div>
+              <button type="submit">Save settings</button>
+            </form>
+            <div class="tool-row">
+              <button id="exportButton" class="ghost-button" type="button">Export data</button>
+              <label class="ghost-button upload-button" for="importFile">Import data</label>
+              <input id="importFile" type="file" accept="application/json" hidden>
+            </div>
+            <p id="systemMessage" class="form-message"></p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">People</p>
+                <h2>Group members</h2>
+              </div>
+            </div>
+            <form id="memberForm" class="stack">
+              <div class="form-grid">
+                <label>
+                  <span>Name</span>
+                  <input id="memberName" name="memberName" type="text" maxlength="30" placeholder="Enter member name">
+                </label>
+                <label>
+                  <span>Email or phone</span>
+                  <input id="memberContact" name="memberContact" type="text" maxlength="50" placeholder="Optional contact">
+                </label>
+              </div>
+              <button type="submit">Add member</button>
+            </form>
+            <div id="memberList" class="chip-grid empty-state"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Expenses</p>
+                <h2>Add shared expense</h2>
+              </div>
+            </div>
+            <form id="expenseForm" class="stack">
+              <label>
+                <span>Description</span>
+                <input id="expenseDescription" name="expenseDescription" type="text" maxlength="60" placeholder="Enter expense description">
+              </label>
+              <div class="form-grid">
+                <label>
+                  <span>Amount</span>
+                  <input id="expenseAmount" name="expenseAmount" type="number" min="0.01" step="0.01" placeholder="0.00">
+                </label>
+                <label>
+                  <span>Paid by</span>
+                  <select id="expensePaidBy" name="expensePaidBy"></select>
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>
+                  <span>Date</span>
+                  <input id="expenseDate" name="expenseDate" type="date">
+                </label>
+                <label>
+                  <span>Category</span>
+                  <select id="expenseCategory" name="expenseCategory">
+                    <option value="Food">Food</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Stay">Stay</option>
+                    <option value="Bills">Bills</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>
+                  <span>Split type</span>
+                  <select id="splitType" name="splitType">
+                    <option value="equal">Equal split</option>
+                    <option value="exact">Exact amounts</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Notes</span>
+                  <input id="expenseNote" name="expenseNote" type="text" maxlength="80" placeholder="Optional context">
+                </label>
+              </div>
+              <fieldset>
+                <legend>Split between</legend>
+                <div id="participantCheckboxes" class="checkbox-grid empty-state"></div>
+              </fieldset>
+              <div id="shareEditor" class="share-editor hidden"></div>
+              <button type="submit">Add expense</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Payments</p>
+                <h2>Record settlement</h2>
+              </div>
+            </div>
+            <form id="paymentForm" class="stack">
+              <div class="form-grid">
+                <label>
+                  <span>From</span>
+                  <select id="paymentFrom" name="paymentFrom"></select>
+                </label>
+                <label>
+                  <span>To</span>
+                  <select id="paymentTo" name="paymentTo"></select>
+                </label>
+              </div>
+              <div class="form-grid">
+                <label>
+                  <span>Amount</span>
+                  <input id="paymentAmount" name="paymentAmount" type="number" min="0.01" step="0.01" placeholder="0.00">
+                </label>
+                <label>
+                  <span>Date</span>
+                  <input id="paymentDate" name="paymentDate" type="date">
+                </label>
+              </div>
+              <label>
+                <span>Note</span>
+                <input id="paymentNote" name="paymentNote" type="text" maxlength="60" placeholder="Add payment note">
+              </label>
+              <button type="submit">Record payment</button>
+            </form>
+          </section>
+
+          <section class="panel wide">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Balances</p>
+                <h2>Current position</h2>
+              </div>
+              <button id="resetButton" class="ghost-button" type="button">Clear all data</button>
+            </div>
+            <div id="balanceCards" class="balance-grid empty-state"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Insights</p>
+                <h2>Spend by category</h2>
+              </div>
+            </div>
+            <div id="categoryBreakdown" class="list-stack empty-state"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Insights</p>
+                <h2>Member summary</h2>
+              </div>
+            </div>
+            <div id="memberSummary" class="list-stack empty-state"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Suggested settle-up</p>
+                <h2>Who should pay whom</h2>
+              </div>
+            </div>
+            <div id="settlementList" class="list-stack empty-state"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Activity</p>
+                <h2>Transactions and payments</h2>
+              </div>
+            </div>
+            <div class="filter-grid">
+              <label>
+                <span>Search</span>
+                <input id="activitySearch" type="text" placeholder="Search description or note">
+              </label>
+              <label>
+                <span>Type</span>
+                <select id="activityTypeFilter">
+                  <option value="all">All activity</option>
+                  <option value="expense">Expenses</option>
+                  <option value="payment">Payments</option>
+                </select>
+              </label>
+              <label>
+                <span>Member</span>
+                <select id="activityMemberFilter"></select>
+              </label>
+              <label>
+                <span>Category</span>
+                <select id="activityCategoryFilter">
+                  <option value="all">All categories</option>
+                  <option value="Food">Food</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Stay">Stay</option>
+                  <option value="Bills">Bills</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Other">Other</option>
+                  <option value="payment">Payments only</option>
+                </select>
+              </label>
+            </div>
+            <div id="activityList" class="list-stack empty-state"></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <template id="memberChipTemplate">
+    <article class="member-chip">
+      <div>
+        <span></span>
+        <p></p>
+      </div>
+      <button type="button" aria-label="Remove member">Remove</button>
+    </article>
+  </template>
+
+  <template id="checkboxTemplate">
+    <label class="checkbox-card">
+      <input type="checkbox">
+      <span></span>
+    </label>
+  </template>
+
+  <template id="balanceCardTemplate">
+    <article class="balance-card">
+      <div>
+        <h3></h3>
+        <p></p>
+      </div>
+      <strong></strong>
+    </article>
+  </template>
+
+  <template id="summaryCardTemplate">
+    <article class="summary-card">
+      <p></p>
+      <strong></strong>
+    </article>
+  </template>
+
+  <template id="listItemTemplate">
+    <article class="list-item">
+      <div>
+        <h3></h3>
+        <p></p>
+      </div>
+      <div class="list-item-actions">
+        <strong></strong>
+        <button type="button" class="danger-button">Delete</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

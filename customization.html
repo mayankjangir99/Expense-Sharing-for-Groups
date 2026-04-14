@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customization | SplitCircle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a href="index.html" class="brand">
+        <span class="brand-mark">SC</span>
+        <div>
+          <strong>SplitCircle</strong>
+          <p>Smarter group expense sharing</p>
+        </div>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="login.html">Log In</a>
+        <a href="signup.html">Sign Up</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact Us</a>
+        <a href="customization.html" class="active-link">Customization</a>
+        <a href="app.html" class="nav-cta" data-protected-link>Get Started</a>
+        <a href="index.html" class="nav-logout">Log Out</a>
+      </nav>
+    </header>
+
+    <main class="page-stack">
+      <section class="customization-layout">
+        <div class="panel customization-intro">
+          <p class="eyebrow">Customization</p>
+          <h2>Shape the product your way</h2>
+          <p class="section-copy">
+            Switch to a black-and-white look, tighten spacing, soften corners, reduce motion, or make the whole interface feel bolder.
+          </p>
+          <div class="hero-proof-grid">
+            <article>
+              <strong>Theme presets</strong>
+              <span>Try midnight, monochrome, or frost styles instantly.</span>
+            </article>
+            <article>
+              <strong>Layout control</strong>
+              <span>Adjust spacing density and corner style for a cleaner fit.</span>
+            </article>
+            <article>
+              <strong>Comfort options</strong>
+              <span>Reduce motion and increase type size for easier reading.</span>
+            </article>
+          </div>
+        </div>
+
+        <div class="panel customization-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Controls</p>
+              <h2>Site preferences</h2>
+            </div>
+            <button id="resetCustomization" class="ghost-button" type="button">Reset</button>
+          </div>
+
+          <form id="customizationForm" class="stack">
+            <div class="form-grid">
+              <label>
+                <span>Theme</span>
+                <select name="theme">
+                  <option value="midnight">Midnight</option>
+                  <option value="mono">Black and white</option>
+                  <option value="frost">Frost</option>
+                </select>
+              </label>
+              <label>
+                <span>Surface style</span>
+                <select name="surface">
+                  <option value="glass">Glass</option>
+                  <option value="solid">Solid</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Spacing density</span>
+                <select name="density">
+                  <option value="compact">Compact</option>
+                  <option value="comfy">Comfy</option>
+                  <option value="airy">Airy</option>
+                </select>
+              </label>
+              <label>
+                <span>Corner style</span>
+                <select name="radius">
+                  <option value="sharp">Sharp</option>
+                  <option value="soft">Soft</option>
+                  <option value="rounded">Rounded</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Type size</span>
+                <select name="typeScale">
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                </select>
+              </label>
+              <label>
+                <span>Motion</span>
+                <select name="motion">
+                  <option value="full">Full</option>
+                  <option value="reduced">Reduced</option>
+                </select>
+              </label>
+            </div>
+          </form>
+
+          <p id="customizationMessage" class="form-message"></p>
+        </div>
+      </section>
+
+      <section class="customization-preview-grid">
+        <article class="panel preview-panel">
+          <p class="eyebrow">Preview</p>
+          <h2>Expense dashboard card</h2>
+          <div class="hero-mini-metrics">
+            <article>
+              <span>Total spend</span>
+              <strong>INR 48.2k</strong>
+            </article>
+            <article>
+              <span>Open balance</span>
+              <strong>INR 8.4k</strong>
+            </article>
+          </div>
+        </article>
+
+        <article class="panel preview-panel">
+          <p class="eyebrow">Preview</p>
+          <h2>Activity density</h2>
+          <div class="list-stack">
+            <div class="list-item">
+              <div>
+                <h3>Dinner expense</h3>
+                <p>4 members | Food | Today</p>
+              </div>
+              <strong>INR 2,450</strong>
+            </div>
+            <div class="list-item">
+              <div>
+                <h3>Cab reimbursement</h3>
+                <p>2 members | Travel | Today</p>
+              </div>
+              <strong>INR 680</strong>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="customization.js"></script>
+</body>
+</html>

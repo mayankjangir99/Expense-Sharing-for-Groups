@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About | SplitCircle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a href="index.html" class="brand">
+        <span class="brand-mark">SC</span>
+        <div>
+          <strong>SplitCircle</strong>
+          <p>Smarter group expense sharing</p>
+        </div>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="login.html">Log In</a>
+        <a href="signup.html">Sign Up</a>
+        <a href="about.html" class="active-link">About</a>
+        <a href="contact.html">Contact Us</a>
+        <a href="customization.html">Customization</a>
+        <a href="app.html" class="nav-cta" data-protected-link>Get Started</a>
+        <a href="index.html" class="nav-logout">Log Out</a>
+      </nav>
+    </header>
+
+    <main class="page-stack">
+      <section class="info-section">
+        <div class="section-heading">
+          <p class="eyebrow">About</p>
+          <h2>Transparent group accounting without friction</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="info-card">
+            <h3>Clear by design</h3>
+            <p>Everyone in the group can understand how balances were calculated from logged expenses and tracked payments.</p>
+          </article>
+          <article class="info-card">
+            <h3>Fast to use</h3>
+            <p>Add members, record transactions, and settle debts from a single dashboard designed for everyday use.</p>
+          </article>
+          <article class="info-card">
+            <h3>Great for collaboration</h3>
+            <p>Whether it is a trip, shared apartment, or event team, the app keeps the financial side simple.</p>
+          </article>
+          <article class="info-card">
+            <h3>Built for real groups</h3>
+            <p>SplitCircle works for roommates, trips, college events, clubs, and small teams managing shared expenses.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="auth.js"></script>
+  <script>
+    setupLogoutLinks();
+    setupProtectedLinks();
+  </script>
+</body>
+</html>
