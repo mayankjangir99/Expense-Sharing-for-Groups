@@ -31,35 +31,62 @@
       </nav>
     </header>
 
-    <main class="auth-page auth-page-static">
-      <div class="form-panel">
-        <p class="eyebrow">Create Account</p>
-        <h2>Sign up for SplitCircle</h2>
-        <form id="signupForm" class="stack">
-          <label>
-            <span>Full name</span>
-            <input type="text" id="signupName" placeholder="Enter your name" required>
-          </label>
-          <label>
-            <span>Email</span>
-            <input type="email" id="signupEmail" placeholder="Enter your email" required>
-          </label>
-          <label>
-            <span>Password</span>
-            <span class="field-row">
-              <input type="password" id="signupPassword" placeholder="Create your password" required>
-              <button class="field-action" type="button" data-toggle-password data-target="signupPassword" aria-label="Show password">
-                Show
-              </button>
-            </span>
-          </label>
-          <button id="signupSubmit" type="submit">Sign Up</button>
-        </form>
-        <p class="auth-alt">
-          Already have an account? <a href="login.html">Log in</a>
-        </p>
-        <p id="signupMessage" class="form-message"></p>
-      </div>
+    <main class="auth-page auth-page-static auth-redesign-page">
+      <section class="auth-shell auth-shell-signup auth-shell-compact">
+        <div class="auth-visual-panel">
+          <p class="eyebrow">Start Fresh</p>
+          <h1>Signup Flow</h1>
+
+          <div class="auth-visual-stage auth-visual-stage-signup" aria-hidden="true">
+            <div class="auth-orbit auth-orbit-a"></div>
+            <div class="auth-orbit auth-orbit-b"></div>
+            <div class="signup-member signup-member-a">You</div>
+            <div class="signup-member signup-member-b">Team</div>
+            <div class="signup-member signup-member-c">Trip</div>
+            <div class="auth-card auth-card-main auth-card-signup">
+              <p class="showcase-label">Group setup</p>
+              <strong>New circle ready</strong>
+              <span>Create your account, add people, and start splitting from one clean workspace.</span>
+            </div>
+            <div class="auth-pill-flow auth-pill-flow-a">Create</div>
+            <div class="auth-pill-flow auth-pill-flow-b">Invite</div>
+            <div class="auth-pill-flow auth-pill-flow-c">Split</div>
+            <div class="auth-beam auth-beam-a"></div>
+            <div class="auth-beam auth-beam-b"></div>
+            <div class="auth-pulse auth-pulse-a"></div>
+            <div class="auth-pulse auth-pulse-b"></div>
+          </div>
+        </div>
+
+        <div class="form-panel auth-form-panel">
+          <p class="eyebrow">Create Account</p>
+          <h2>Sign up for SplitCircle</h2>
+          <form id="signupForm" class="stack">
+            <label>
+              <span>Full name</span>
+              <input type="text" id="signupName" placeholder="Enter your name" required>
+            </label>
+            <label>
+              <span>Email</span>
+              <input type="email" id="signupEmail" placeholder="Enter your email" required>
+            </label>
+            <label>
+              <span>Password</span>
+              <span class="field-row">
+                <input type="password" id="signupPassword" placeholder="Create your password" required>
+                <button class="field-action" type="button" data-toggle-password data-target="signupPassword" aria-label="Show password">
+                  Show
+                </button>
+              </span>
+            </label>
+            <button id="signupSubmit" type="submit">Sign Up</button>
+          </form>
+          <p class="auth-alt">
+            Already have an account? <a href="login.html">Log in</a>
+          </p>
+          <p id="signupMessage" class="form-message"></p>
+        </div>
+      </section>
     </main>
   </div>
 

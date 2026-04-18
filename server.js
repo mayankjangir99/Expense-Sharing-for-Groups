@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 const express = require("express");
 const { OAuth2Client } = require("google-auth-library");
 const mongoose = require("mongoose");
+const nodemailer = require("nodemailer");
+const PDFDocument = require("pdfkit");
 
 dotenv.config();
 
@@ -14,6 +16,13 @@ const mongoUri = process.env.MONGODB_URI;
 const authSecret = process.env.AUTH_SECRET;
 const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
 const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
+const smtpHost = process.env.SMTP_HOST || "";
+const smtpPort = Number(process.env.SMTP_PORT) || 465;
+const smtpUser = process.env.SMTP_USER || "";
+const smtpPass = process.env.SMTP_PASS || "";
+const smtpSecure = String(process.env.SMTP_SECURE || "true").toLowerCase() !== "false";
+const contactToEmail = process.env.CONTACT_TO_EMAIL || "";
+const contactFromEmail = process.env.CONTACT_FROM_EMAIL || smtpUser || "";
 let mongooseConnectionPromise = null;
 
 if (!mongoUri) {
@@ -161,6 +170,246 @@ function sanitizeState(input) {
     expenses: Array.isArray(input.expenses) ? input.expenses : [],
     payments: Array.isArray(input.payments) ? input.payments : []
   };
+}
+
+function roundCurrency(value) {
+  return Math.round(Number(value || 0) * 100) / 100;
+}
+
+function formatCurrency(amount, currency = "INR") {
+  return new Intl.NumberFormat("en", {
+    style: "currency",
+    currency: currency || "INR",
+    maximumFractionDigits: 2
+  }).format(Number(amount || 0));
+}
+
+function formatShortDate(dateValue) {
+  if (!dateValue) {
+    return "N/A";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(new Date(dateValue));
+}
+
+function lookupMemberName(members, memberId) {
+  return members.find((member) => member.id === memberId)?.name || "Unknown member";
+}
+
+function calculateBalancesForState(state) {
+  const balances = new Map(state.members.map((member) => [member.id, 0]));
+
+  state.expenses.forEach((expense) => {
+    balances.set(expense.paidBy, roundCurrency((balances.get(expense.paidBy) || 0) + Number(expense.amount || 0)));
+    Object.entries(expense.shares || {}).forEach(([participantId, share]) => {
+      balances.set(participantId, roundCurrency((balances.get(participantId) || 0) - Number(share || 0)));
+    });
+  });
+
+  state.payments.forEach((payment) => {
+    balances.set(payment.from, roundCurrency((balances.get(payment.from) || 0) + Number(payment.amount || 0)));
+    balances.set(payment.to, roundCurrency((balances.get(payment.to) || 0) - Number(payment.amount || 0)));
+  });
+
+  return state.members
+    .map((member) => ({
+      id: member.id,
+      name: member.name,
+      balance: roundCurrency(balances.get(member.id) || 0)
+    }))
+    .sort((a, b) => b.balance - a.balance);
+}
+
+function calculateSettlementsForState(state) {
+  const balances = calculateBalancesForState(state);
+  const creditors = balances
+    .filter((entry) => entry.balance > 0.009)
+    .map((entry) => ({ ...entry }));
+  const debtors = balances
+    .filter((entry) => entry.balance < -0.009)
+    .map((entry) => ({ ...entry, balance: Math.abs(entry.balance) }));
+
+  const settlements = [];
+  let creditorIndex = 0;
+  let debtorIndex = 0;
+
+  while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
+    const creditor = creditors[creditorIndex];
+    const debtor = debtors[debtorIndex];
+    const amount = roundCurrency(Math.min(creditor.balance, debtor.balance));
+
+    settlements.push({
+      from: debtor.name,
+      to: creditor.name,
+      amount
+    });
+
+    creditor.balance = roundCurrency(creditor.balance - amount);
+    debtor.balance = roundCurrency(debtor.balance - amount);
+
+    if (creditor.balance <= 0.009) {
+      creditorIndex += 1;
+    }
+
+    if (debtor.balance <= 0.009) {
+      debtorIndex += 1;
+    }
+  }
+
+  return settlements;
+}
+
+function buildReportPdfBuffer(reportState, recipient) {
+  const state = sanitizeState(reportState);
+  const balances = calculateBalancesForState(state);
+  const settlements = calculateSettlementsForState(state);
+  const totalSpent = state.expenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  const totalPaidBack = state.payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  const openBalance = balances.reduce((sum, item) => sum + Math.abs(item.balance), 0) / 2;
+  const currency = state.settings.currency || "INR";
+  const title = state.settings.groupName || "SplitCircle Group";
+
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 48, size: "A4" });
+    const chunks = [];
+
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", reject);
+
+    const ensureSpace = (minY = 720) => {
+      if (doc.y > minY) {
+        doc.addPage();
+      }
+    };
+
+    const sectionTitle = (text) => {
+      ensureSpace(700);
+      doc.moveDown(0.5);
+      doc.font("Helvetica-Bold").fontSize(15).fillColor("#111827").text(text);
+      doc.moveDown(0.25);
+    };
+
+    const lineItem = (label, value) => {
+      ensureSpace(735);
+      doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827").text(`${label}: `, { continued: true });
+      doc.font("Helvetica").fontSize(10).fillColor("#374151").text(value);
+    };
+
+    doc.font("Helvetica-Bold").fontSize(22).fillColor("#111827").text("SplitCircle Expense Report");
+    doc.moveDown(0.25);
+    doc.font("Helvetica").fontSize(11).fillColor("#4b5563").text(`Group: ${title}`);
+    doc.text(`Generated: ${formatShortDate(new Date().toISOString())}`);
+    doc.text(`Sent to: ${recipient.email}`);
+
+    sectionTitle("Overview");
+    lineItem("Members", String(state.members.length));
+    lineItem("Expenses", String(state.expenses.length));
+    lineItem("Payments", String(state.payments.length));
+    lineItem("Total spent", formatCurrency(totalSpent, currency));
+    lineItem("Payments recorded", formatCurrency(totalPaidBack, currency));
+    lineItem("Outstanding balance", formatCurrency(openBalance, currency));
+
+    sectionTitle("Members");
+    if (state.members.length === 0) {
+      lineItem("Status", "No members added yet.");
+    } else {
+      state.members.forEach((member) => {
+        ensureSpace(735);
+        doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827").text(member.name);
+        doc.font("Helvetica").fontSize(10).fillColor("#4b5563").text(member.contact || "No contact");
+        doc.moveDown(0.2);
+      });
+    }
+
+    sectionTitle("Balances");
+    if (balances.length === 0) {
+      lineItem("Status", "No balances available yet.");
+    } else {
+      balances.forEach((entry) => {
+        const status = entry.balance > 0 ? "Should receive" : entry.balance < 0 ? "Needs to pay" : "Balanced";
+        lineItem(entry.name, `${formatCurrency(Math.abs(entry.balance), currency)} | ${status}`);
+      });
+    }
+
+    sectionTitle("Suggested Settlements");
+    if (settlements.length === 0) {
+      lineItem("Status", "No suggested settle-up needed right now.");
+    } else {
+      settlements.forEach((item) => {
+        lineItem(`${item.from} -> ${item.to}`, formatCurrency(item.amount, currency));
+      });
+    }
+
+    sectionTitle("Expenses");
+    if (state.expenses.length === 0) {
+      lineItem("Status", "No expenses recorded yet.");
+    } else {
+      state.expenses.forEach((expense, index) => {
+        ensureSpace(690);
+        doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827").text(`${index + 1}. ${expense.description}`);
+        doc.font("Helvetica").fontSize(10).fillColor("#374151").text(
+          `Amount: ${formatCurrency(expense.amount, currency)} | Paid by: ${lookupMemberName(state.members, expense.paidBy)} | Date: ${formatShortDate(expense.date)}`
+        );
+        doc.text(`Category: ${expense.category || "Other"} | Split: ${expense.splitType || "equal"}`);
+        doc.text(`Participants: ${(expense.participants || []).map((id) => lookupMemberName(state.members, id)).join(", ") || "None"}`);
+        if (expense.note) {
+          doc.text(`Note: ${expense.note}`);
+        }
+        doc.moveDown(0.35);
+      });
+    }
+
+    sectionTitle("Payments");
+    if (state.payments.length === 0) {
+      lineItem("Status", "No payments recorded yet.");
+    } else {
+      state.payments.forEach((payment, index) => {
+        ensureSpace(705);
+        doc.font("Helvetica-Bold").fontSize(11).fillColor("#111827").text(
+          `${index + 1}. ${lookupMemberName(state.members, payment.from)} paid ${lookupMemberName(state.members, payment.to)}`
+        );
+        doc.font("Helvetica").fontSize(10).fillColor("#374151").text(
+          `Amount: ${formatCurrency(payment.amount, currency)} | Date: ${formatShortDate(payment.date)}`
+        );
+        if (payment.note) {
+          doc.text(`Note: ${payment.note}`);
+        }
+        doc.moveDown(0.35);
+      });
+    }
+
+    doc.end();
+  });
+}
+
+function createMailTransport() {
+  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !contactToEmail || !contactFromEmail) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass
+    }
+  });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function createPasswordHash(password) {
@@ -387,6 +636,112 @@ app.post("/api/auth/login", async (request, response) => {
       email: user.email
     }
   });
+});
+
+app.post("/api/contact", async (request, response) => {
+  const name = String(request.body?.name || "").trim();
+  const email = String(request.body?.email || "").trim();
+  const message = String(request.body?.message || "").trim();
+
+  if (!name || !email || !message) {
+    response.status(400).json({ error: "Name, email, and message are required." });
+    return;
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(email)) {
+    response.status(400).json({ error: "Please enter a valid email address." });
+    return;
+  }
+
+  if (message.length < 10) {
+    response.status(400).json({ error: "Please write a slightly longer message." });
+    return;
+  }
+
+  const transporter = createMailTransport();
+  if (!transporter) {
+    response.status(503).json({ error: "Contact email is not configured on the server yet." });
+    return;
+  }
+
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeMessage = escapeHtml(message).replace(/\r?\n/g, "<br>");
+
+  await transporter.sendMail({
+    from: `"SplitCircle Contact" <${contactFromEmail}>`,
+    to: contactToEmail,
+    replyTo: email,
+    subject: `New SplitCircle contact message from ${name}`,
+    text: [
+      "New SplitCircle contact message",
+      "",
+      `Name: ${name}`,
+      `Email: ${email}`,
+      "",
+      "Message:",
+      message
+    ].join("\n"),
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+        <h2 style="margin-bottom: 12px;">New SplitCircle contact message</h2>
+        <p><strong>Name:</strong> ${safeName}</p>
+        <p><strong>Email:</strong> ${safeEmail}</p>
+        <p><strong>Message:</strong></p>
+        <div style="padding: 12px 14px; border-radius: 12px; background: #f3f4f6;">${safeMessage}</div>
+      </div>
+    `
+  });
+
+  response.status(201).json({ ok: true });
+});
+
+app.post("/api/report/email", requireUser, async (request, response) => {
+  const transporter = createMailTransport();
+  if (!transporter) {
+    response.status(503).json({ error: "Email delivery is not configured on the server yet." });
+    return;
+  }
+
+  const userState = await UserState.findOne({ userId: request.user._id }).lean();
+  const reportState = sanitizeState(userState?.state);
+  const pdfBuffer = await buildReportPdfBuffer(reportState, request.user);
+  const groupName = reportState.settings.groupName || "splitcircle-group";
+  const safeGroupName = groupName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "splitcircle-group";
+
+  await transporter.sendMail({
+    from: `"SplitCircle Reports" <${contactFromEmail}>`,
+    to: request.user.email,
+    replyTo: contactToEmail,
+    subject: `Your SplitCircle report for ${groupName}`,
+    text: [
+      `Hello ${request.user.name || "there"},`,
+      "",
+      "Your latest SplitCircle report is attached as a PDF.",
+      "It includes group details, balances, expenses, payments, and settle-up suggestions.",
+      "",
+      "Thanks,",
+      "SplitCircle"
+    ].join("\n"),
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+        <h2 style="margin-bottom: 12px;">Your SplitCircle report is ready</h2>
+        <p>Hello ${escapeHtml(request.user.name || "there")},</p>
+        <p>Your latest group expense report is attached as a PDF.</p>
+        <p>It includes members, balances, expenses, payments, and settle-up suggestions.</p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `${safeGroupName}-report.pdf`,
+        content: pdfBuffer,
+        contentType: "application/pdf"
+      }
+    ]
+  });
+
+  response.status(201).json({ ok: true, email: request.user.email });
 });
 
 app.get("/api/auth/me", requireUser, async (request, response) => {

@@ -31,27 +31,51 @@
       </nav>
     </header>
 
-    <main class="auth-page auth-page-static">
-      <div class="form-panel">
-        <p class="eyebrow">Contact Us</p>
-        <h2>Send us your question</h2>
-        <form id="contactForm" class="stack">
-          <label>
-            <span>Name</span>
-            <input type="text" id="contactName" placeholder="Enter your name" required>
-          </label>
-          <label>
-            <span>Email</span>
-            <input type="email" id="contactEmail" placeholder="Enter your email" required>
-          </label>
-          <label>
-            <span>Message</span>
-            <textarea id="contactMessageInput" rows="5" placeholder="How can we help?" required></textarea>
-          </label>
-          <button type="submit">Send Message</button>
-        </form>
-        <p id="contactMessage" class="form-message"></p>
-      </div>
+    <main class="auth-page auth-page-static auth-redesign-page">
+      <section class="auth-shell auth-shell-contact auth-shell-compact">
+        <div class="auth-visual-panel contact-visual-panel">
+          <p class="eyebrow">Contact Flow</p>
+          <h1>Message Motion</h1>
+
+          <div class="auth-visual-stage contact-visual-stage" aria-hidden="true">
+            <div class="auth-orbit auth-orbit-a"></div>
+            <div class="auth-orbit auth-orbit-b"></div>
+            <div class="contact-message-card">
+              <p class="showcase-label">Support line</p>
+              <strong>Message sent</strong>
+              <span>Your note moves from question to reply-ready support flow.</span>
+            </div>
+            <div class="contact-bubble contact-bubble-a">Hello</div>
+            <div class="contact-bubble contact-bubble-b">Need help</div>
+            <div class="contact-bubble contact-bubble-c">Reply</div>
+            <div class="contact-beam contact-beam-a"></div>
+            <div class="contact-beam contact-beam-b"></div>
+            <div class="contact-pulse contact-pulse-a"></div>
+            <div class="contact-pulse contact-pulse-b"></div>
+          </div>
+        </div>
+
+        <div class="form-panel auth-form-panel">
+          <p class="eyebrow">Contact Us</p>
+          <h2>Send us your question</h2>
+          <form id="contactForm" class="stack">
+            <label>
+              <span>Name</span>
+              <input type="text" id="contactName" placeholder="Enter your name" required>
+            </label>
+            <label>
+              <span>Email</span>
+              <input type="email" id="contactEmail" placeholder="Enter your email" required>
+            </label>
+            <label>
+              <span>Message</span>
+              <textarea id="contactMessageInput" rows="5" placeholder="How can we help?" required></textarea>
+            </label>
+            <button type="submit">Send Message</button>
+          </form>
+          <p id="contactMessage" class="form-message"></p>
+        </div>
+      </section>
     </main>
   </div>
 

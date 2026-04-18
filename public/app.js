@@ -24,6 +24,7 @@ const elements = {
   currency: document.getElementById("currency"),
   defaultNote: document.getElementById("defaultNote"),
   exportButton: document.getElementById("exportButton"),
+  reportButton: document.getElementById("reportButton"),
   importFile: document.getElementById("importFile"),
   systemMessage: document.getElementById("systemMessage"),
   memberForm: document.getElementById("memberForm"),
@@ -125,6 +126,9 @@ function bindEvents() {
     void handleSaveSettings(event);
   });
   elements.exportButton.addEventListener("click", handleExport);
+  elements.reportButton.addEventListener("click", () => {
+    void handleEmailReport();
+  });
   elements.importFile.addEventListener("change", (event) => {
     void handleImport(event);
   });
@@ -223,6 +227,25 @@ function handleExport() {
   link.remove();
   URL.revokeObjectURL(url);
   setSystemMessage("Group data exported.");
+}
+
+async function handleEmailReport() {
+  try {
+    elements.reportButton.disabled = true;
+    elements.reportButton.textContent = "Sending report...";
+    setSystemMessage("Preparing your PDF report.");
+
+    const payload = await apiRequest("/api/report/email", {
+      method: "POST"
+    });
+
+    setSystemMessage(`PDF report sent to ${payload.email}.`);
+  } catch (error) {
+    setSystemMessage(error.message || "Could not send the PDF report.");
+  } finally {
+    elements.reportButton.disabled = false;
+    elements.reportButton.textContent = "Get report";
+  }
 }
 
 async function handleImport(event) {

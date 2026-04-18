@@ -11,7 +11,9 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "google-auth-library": "^9.15.1",
-    "mongoose": "^8.9.5"
+    "mongoose": "^8.9.5",
+    "nodemailer": "^8.0.5",
+    "pdfkit": "^0.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

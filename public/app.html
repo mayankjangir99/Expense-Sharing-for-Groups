@@ -33,8 +33,8 @@
 
     <main class="page-stack">
       <div class="page-shell">
-        <header class="hero">
-          <div>
+        <header class="hero app-hero">
+          <div class="app-hero-copy">
             <span class="hero-badge">Protected workspace for real shared spending</span>
             <p class="eyebrow">Expense Dashboard</p>
             <h2 class="app-title" id="groupTitle">Your group expense workspace</h2>
@@ -62,12 +62,37 @@
           </div>
 
           <div class="app-corner-animation" aria-hidden="true">
-            <div class="hero-animation-stage app-corner-stage">
-              <div class="money-orbit money-orbit-a"></div>
-              <div class="money-orbit money-orbit-b"></div>
-              <div class="coin-float coin-one">USD</div>
-              <div class="coin-float coin-two">INR</div>
-              <div class="coin-float coin-three">EUR</div>
+            <div class="hero-animation-stage app-corner-stage app-flow-stage">
+              <div class="flow-node flow-node-payer">
+                <span>Alex</span>
+                <strong>Paid</strong>
+              </div>
+              <div class="flow-node flow-node-group">
+                <span>Group</span>
+                <strong>Split</strong>
+              </div>
+              <div class="flow-node flow-node-balance">
+                <span>Settle</span>
+                <strong>Clear</strong>
+              </div>
+
+              <div class="flow-link flow-link-a"></div>
+              <div class="flow-link flow-link-b"></div>
+              <div class="flow-link flow-link-c"></div>
+
+              <div class="flow-pulse flow-pulse-a"></div>
+              <div class="flow-pulse flow-pulse-b"></div>
+              <div class="flow-pulse flow-pulse-c"></div>
+
+              <div class="flow-insight-card">
+                <p class="showcase-label">Live settle-up</p>
+                <strong>Balances syncing</strong>
+                <div class="flow-bars">
+                  <span class="flow-bar flow-bar-food"></span>
+                  <span class="flow-bar flow-bar-travel"></span>
+                  <span class="flow-bar flow-bar-bills"></span>
+                </div>
+              </div>
             </div>
           </div>
         </header>
@@ -106,6 +131,7 @@
             </form>
             <div class="tool-row">
               <button id="exportButton" class="ghost-button" type="button">Export data</button>
+              <button id="reportButton" class="ghost-button" type="button">Get report</button>
               <label class="ghost-button upload-button" for="importFile">Import data</label>
               <input id="importFile" type="file" accept="application/json" hidden>
             </div>

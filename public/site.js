@@ -79,10 +79,34 @@ if (signupForm) {
 }
 
 if (contactForm) {
-  contactForm.addEventListener("submit", (event) => {
+  contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+
+    const name = document.getElementById("contactName").value.trim();
+    const email = document.getElementById("contactEmail").value.trim();
+    const messageInput = document.getElementById("contactMessageInput").value.trim();
     const message = document.getElementById("contactMessage");
-    message.textContent = "Your message has been sent. We will get back to you soon.";
+    const submitButton = contactForm.querySelector('button[type="submit"]');
+
+    try {
+      setFormMessage(message, "");
+      setBusyState(submitButton, true, "Sending...");
+      await apiRequest("/api/contact", {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          email,
+          message: messageInput
+        })
+      });
+
+      contactForm.reset();
+      setFormMessage(message, "Your message has been sent successfully. We will get back to you soon.", "success");
+    } catch (error) {
+      setFormMessage(message, error.message, "error");
+    } finally {
+      setBusyState(submitButton, false, "Send Message");
+    }
   });
 }
 
