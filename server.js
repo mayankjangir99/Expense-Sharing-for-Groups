@@ -13,8 +13,8 @@ const port = Number(process.env.PORT) || 3000;
 const mongoUri = process.env.MONGODB_URI;
 const authSecret = process.env.AUTH_SECRET;
 const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
-const rootDir = __dirname;
 const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
+let mongooseConnectionPromise = null;
 
 if (!mongoUri) {
   throw new Error("Missing MONGODB_URI in environment.");
@@ -104,7 +104,34 @@ const User = mongoose.model("User", userSchema);
 const UserState = mongoose.model("UserState", userStateSchema);
 
 app.use(express.json({ limit: "1mb" }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
+
+async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  if (!mongooseConnectionPromise) {
+    mongooseConnectionPromise = mongoose.connect(mongoUri);
+  }
+
+  try {
+    await mongooseConnectionPromise;
+    return mongoose.connection;
+  } catch (error) {
+    mongooseConnectionPromise = null;
+    throw error;
+  }
+}
+
+app.use("/api", async (_request, _response, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 function createDefaultState() {
   return {
@@ -397,23 +424,23 @@ app.put("/api/state", requireUser, async (request, response) => {
   response.json({ state: sanitizedState });
 });
 
-app.get("*", (request, response) => {
-  const requestedPath = request.path === "/" ? "login.html" : request.path.slice(1);
-  response.sendFile(path.join(__dirname, 'public', requestedPath), (error) => {
-    if (error) {
-      response.sendFile(path.join(__dirname, 'public', "login.html"));
-    }
-  });
-});
-
 async function start() {
-  await mongoose.connect(mongoUri);
+  await connectToDatabase();
   app.listen(port, () => {
     console.log(`SplitCircle server running on http://localhost:${port}`);
   });
 }
 
-start().catch((error) => {
-  console.error("Failed to start server:", error);
-  process.exit(1);
+app.use((error, _request, response, _next) => {
+  console.error("Request failed:", error);
+  response.status(500).json({ error: "Internal server error." });
 });
+
+module.exports = app;
+
+if (require.main === module) {
+  start().catch((error) => {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  });
+}
