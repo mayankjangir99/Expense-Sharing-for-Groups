@@ -104,7 +104,7 @@ const User = mongoose.model("User", userSchema);
 const UserState = mongoose.model("UserState", userStateSchema);
 
 app.use(express.json({ limit: "1mb" }));
-app.use(express.static(rootDir));
+app.use(express.static(path.join(__dirname, 'public')));
 
 function createDefaultState() {
   return {
@@ -224,6 +224,10 @@ async function ensureUserState(userId) {
 
 app.get("/api/health", (_request, response) => {
   response.json({ ok: true });
+});
+
+app.get("/api/test", (_request, response) => {
+  response.json({ message: "Test API works!" });
 });
 
 app.get("/api/config", (_request, response) => {
@@ -394,10 +398,10 @@ app.put("/api/state", requireUser, async (request, response) => {
 });
 
 app.get("*", (request, response) => {
-  const requestedPath = request.path === "/" ? "index.html" : request.path.slice(1);
-  response.sendFile(path.join(rootDir, requestedPath), (error) => {
+  const requestedPath = request.path === "/" ? "login.html" : request.path.slice(1);
+  response.sendFile(path.join(__dirname, 'public', requestedPath), (error) => {
     if (error) {
-      response.status(404).sendFile(path.join(rootDir, "index.html"));
+      response.sendFile(path.join(__dirname, 'public', "login.html"));
     }
   });
 });
